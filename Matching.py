@@ -11,9 +11,9 @@ def expendPts(pts,offset = 40):
         x, y = point
         dx,dy = x - ctX, y - ctY
         t = offset / np.sqrt(dx * dx + dy * dy)
-        x = x + t * dx * 0.2
-        if dy > 0:
-            y = y + t * dy * 6.0
+        x = x + t * dx * 2.0
+        # if dy > 0:
+        y = y + t * dy * 1.2
         pt = (x, y)
         points.append(pt)
     return points
@@ -55,13 +55,13 @@ def cutConponent(img1,img2):
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
         dst = cv2.perspectiveTransform(pts,M)
 
-        # points = []
-        # for ptArray in np.float32(dst).tolist():
-        #     points.append(ptArray[0])
+        points = []
+        for ptArray in np.float32(dst).tolist():
+            points.append(ptArray[0])
 
-        # pts = expendPts(dst.reshape(1,-1,2)[0])
+        pts = expendPts(dst.reshape(1,-1,2)[0],40)
 
-        # dst = np.float32(pts).reshape(-1,1,2)
+        dst = np.float32(pts).reshape(-1,1,2)
 
         cv2.fillPoly(img2,[np.int32(dst)],0)
     else:
@@ -78,12 +78,14 @@ def preProcess(img):
     # img = img[180:r - 250,545:c - 300]
     # img = img[360:r - 500,1090:c - 600]
     # img = img[360:r - 300,1090:c - 600]
-    img = img[360:r - 430,980:c - 600]
+    # img = img[360:r - 430,980:c - 600] #EQ5
+    # img = img[280:r - 450,1050:c - 600] #EQ7
+    img = img[250:r - 200,1000:c - 600] #EQ7
     #img = img[360:r - 160,980:c - 600]
     #img = img[360:r - 180,1000:c - 1500]
 
-    img_roof = cv2.imread('roof.png',0)  # queryImage
-    img_framedown = cv2.imread('RD.png',0)
+    img_roof = cv2.imread('EQ7/roof.png',0)  # queryImage
+    # img_framedown = cv2.imread('RD.png',0)
     # img_framedown = cv2.imread('frames.png',0)
     # img_frameTop = cv2.imread('top_frame.png',0)
     # img_frameLeft = cv2.imread('leftFrame.png',0)

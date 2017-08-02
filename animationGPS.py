@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as manimation
 import cv2  
 
-filename = "replacementGPS_normalize.txt"
+filename = "EQ7/displacementGPS_normalize.txt"
 
 X0 = []
 X1 = []
@@ -30,15 +30,30 @@ with open(filename, "r") as f:
     Y2.append(y2)
     pass
 
-# first set up the figure, the axis, and the plot element we want to animate   
+filename = "EQ7/GPSRecord_Prcss.txt"
 
-# fig = plt.figure() # make figure
+RX0 = []
+RX1 = []
+RX2 = []
+RY0 = []
+RY1 = []
+RY2 = []
 
-# # make axesimage object
-# # the vmin and vmax here are very important to get the color map correct
-# r,c,a = frame.shape
-
-# im = plt.imshow(frame, cmap=plt.get_cmap('jet'), vmin=0, vmax=855)
+with open(filename, "r") as f:
+  while 1:
+    line = f.readline() 
+    if not line:
+        break
+        pass
+    line = line[:line.find('\t\n')]
+    frame_i, x0, y0, x1, y1, x2, y2= [float(i) for i in line.split('\t')]
+    RX0.append(x0)
+    RX1.append(x1)
+    RX2.append(x2)
+    RY0.append(y0)
+    RY1.append(y1)
+    RY2.append(y2)
+    pass
 
 FFMpegWriter = manimation.writers['ffmpeg']
 metadata = dict(title='Movie Test', artist='Matplotlib',
@@ -52,14 +67,14 @@ fig = plt.figure()
 
 fig.suptitle('Video Data Analysis of Roof Level', fontsize=12)
 
-ax1 = fig.add_subplot(2,2,1,xlim=(1, len(X0)), ylim=(-30, 50)) 
+ax1 = fig.add_subplot(2,2,1,xlim=(1, len(X0)), ylim=(-60, 100)) 
 ax1.set_title('X Relative Displacement',fontweight="bold", size=6) # Title
 ax1.set_ylabel('Deplacement(pixel)', fontsize = 6) # Y label
 ax1.set_xlabel('time(frame)', fontsize = 6) # X label
 
-line0, = ax1.plot([], [], lw=1,label='Middle',color = (1,0,0))   
-line1, = ax1.plot([], [], lw=1,label='TopRight',color = (0,0,1))   
-line2, = ax1.plot([], [], lw=1,label='BottomRight',color = (0,1,0))   
+line0, = ax1.plot([], [], lw=1,label='VIDEO',color = (1,0,0))   
+line1, = ax1.plot([], [], lw=1,label='GPS',color = (0,0,1))   
+# line2, = ax1.plot([], [], lw=1,label='BottomRight',color = (0,1,0))   
 # line3, = ax1.plot([], [], lw=1,label='BottomLeft')    
 ax1.legend(loc='upper right')
 text1 = ax1.text(80, 40, str(i), fontsize=6)
@@ -70,16 +85,16 @@ ax2.set_title('Y Relative Displacement',fontweight="bold", size=6) # Title
 ax2.set_ylabel('Deplacement(pixel)', fontsize = 6) # Y label
 ax2.set_xlabel('time(frame)', fontsize = 6) # X label
 
-line4, = ax2.plot([], [], lw=1,label='Middle',color = (1,0,0))   
-line5, = ax2.plot([], [], lw=1,label='TopRight',color = (0,0,1))   
-line6, = ax2.plot([], [], lw=1,label='BottomRight',color = (0,1,0))   
+line4, = ax2.plot([], [], lw=1,label='VIDEO',color = (1,0,0))   
+line5, = ax2.plot([], [], lw=1,label='GPS',color = (0,0,1))   
+# line6, = ax2.plot([], [], lw=1,label='BottomRight',color = (0,1,0))   
 # line7, = ax2.plot([], [], lw=1,label='BottomLeft')    
 ax2.legend(loc='upper right')
 text2 = ax2.text(80, 40, str(i), fontsize=6)
 
 frame_i = 720
 
-frame = cv2.imread("Preprocess2/frame720.png")
+frame = cv2.imread("EQ7/Preprocess1/frame3267.png")
 
 im00 = fig.add_subplot(2,2,3,title = "Original Video")#xlim=(0, 3840), ylim=(0, 2160)
 im00.axis('off')
@@ -93,53 +108,11 @@ im1 = plt.imshow(frame, cmap=plt.get_cmap('jet'), vmin=0, vmax=855)
 
 plt.tight_layout(pad=10.08, w_pad=3.0, h_pad=3.0)
 
-# def init():   
-#     line1.set_data([], [])     
-#     return line1,[im]
-  
-# # animation function.  this is called sequentially     
-# def animate(i):  
-#     #i = 500
-#     x = np.linspace(1, len(X0), len(X0))
-#     temp = [X0[0] for k in range(len(X0))]
-#     y = [X0[k] - temp[k] for k in range(len(X0))]
-#     n = len(X0) - i
-#     y[i:] = [0 for k in range(n)]
-#     line0.set_data(x, y)   
+cap0 = cv2.VideoCapture("EQ7/EQ7_Top.avi")
 
-#     temp = [X1[0] for k in range(len(X0))]
-#     y = [X1[k] - temp[k] for k in range(len(X0))]
-#     y[i:] = [0 for k in range(n)]
-#     line1.set_data(x, y)   
+cap1 = cv2.VideoCapture('EQ7/OFGPS.avi')
 
-#     temp = [X2[0] for k in range(len(X0))]
-#     y = [X2[k] - temp[k] for k in range(len(X0))]
-#     y[i:] = [0 for k in range(n)]
-#     line2.set_data(x, y)   
-
-#     temp = [X3[0] for k in range(len(X0))]
-#     y = [X3[k] - temp[k] for k in range(len(X0))]
-#     y[i:] = [0 for k in range(n)]
-#     line3.set_data(x, y)   
-
-
-#     frame_i = 720 + i
-#     print frame_i
-#     frame = cv2.imread("Preprocess2/frame%d.png"%(frame_i))
-#     im.set_array(frame)
-#     return (line0,line1,line2,line3) ,[im]
-  
-# anim1=animation.FuncAnimation(fig, animate, init_func=init,  frames=len(X0), interval=30)  
-
-
-cap0 = cv2.VideoCapture("EQ5_Top.MOV")
-
-for i in range(720):
-    ret, frame0 = cap0.read()
-
-cap1 = cv2.VideoCapture('OFGPS.avi')
-
-with writer.saving(fig, "OFGPS.mp4", len(X0)):
+with writer.saving(fig, "EQ7/OFGPS.mp4", len(X0)):
     for i in range(len(X0)):
         text1.set_text(str(X0[i]))
         text2.set_text(str(Y0[i]))
@@ -151,15 +124,18 @@ with writer.saving(fig, "OFGPS.mp4", len(X0)):
         y[i:] = [0 for k in range(n)]
         line0.set_data(x, y)   
 
-        temp = [X1[0] for k in range(len(X0))]
-        y = [X1[k] - temp[k] for k in range(len(X0))]
+        # temp = [X1[0] for k in range(len(X0))]
+        # y = [X1[k] - temp[k] for k in range(len(X0))]
+        # y[i:] = [0 for k in range(n)]
+        temp = [RX0[0] for k in range(len(X0))]
+        y = [ (- RX0[k] + temp[k]) * 4.0 for k in range(len(X0))]
         y[i:] = [0 for k in range(n)]
         line1.set_data(x, y)   
 
-        temp = [X2[0] for k in range(len(X0))]
-        y = [X2[k] - temp[k] for k in range(len(X0))]
-        y[i:] = [0 for k in range(n)]
-        line2.set_data(x, y)   
+        # temp = [X2[0] for k in range(len(X0))]
+        # y = [X2[k] - temp[k] for k in range(len(X0))]
+        # y[i:] = [0 for k in range(n)]
+        # line2.set_data(x, y)   
 
         # temp = [X3[0] for k in range(len(X0))]
         # y = [X3[k] - temp[k] for k in range(len(X0))]
@@ -167,26 +143,26 @@ with writer.saving(fig, "OFGPS.mp4", len(X0)):
         # line3.set_data(x, y)   
 
         temp = [Y0[0] for k in range(len(X0))]
-        y = [Y0[k] - temp[k] for k in range(len(X0))]
+        y = [ - Y0[k] + temp[k] for k in range(len(X0))]
         y[i:] = [0 for k in range(n)]
         line4.set_data(x, y)   
 
-        temp = [Y1[0] for k in range(len(X0))]
-        y = [Y1[k] - temp[k] for k in range(len(X0))]
+        temp = [RY0[0] for k in range(len(X0))]
+        y = [(- RY0[k] + temp[k])*20.0 for k in range(len(X0))]
         y[i:] = [0 for k in range(n)]
         line5.set_data(x, y)   
 
-        temp = [Y2[0] for k in range(len(X0))]
-        y = [Y2[k] - temp[k] for k in range(len(X0))]
-        y[i:] = [0 for k in range(n)]
-        line6.set_data(x, y)   
+        # temp = [RX2[0] for k in range(len(X0))]
+        # y = [- RX2[k] + temp[k] for k in range(len(X0))]
+        # y[i:] = [0 for k in range(n)]
+        # line6.set_data(x, y)   
 
         # temp = [Y3[0] for k in range(len(X0))]
         # y = [Y3[k] - temp[k] for k in range(len(X0))]
         # y[i:] = [0 for k in range(n)]
         # line7.set_data(x, y)  
 
-        frame_i = 720 + i
+        frame_i = 3267 + i
         print frame_i
         ret, frame1 = cap1.read()
         if frame1 is None:

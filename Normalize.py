@@ -6,7 +6,7 @@ import matplotlib.animation as manimation
 import cv2  
 import math
 
-filename = "replacementGPS.txt"
+filename = "EQ7/displacementGPS.txt"
 
 X0 = []
 X1 = []
@@ -36,7 +36,7 @@ with open(filename, "r") as f:
     pass
 
 
-filename = "replacement.txt"
+filename = "EQ7/displacementCt.txt"
 
 StdX0 = []
 StdX1 = []
@@ -53,7 +53,7 @@ with open(filename, "r") as f:
         break
         pass
     line = line[:line.find('\t\n')]
-    frame_i, x0, y0, x1, y1, x2, y2, x3, y3 = [float(i) for i in line.split('\t')]
+    frame_i, x0, y0, x1, y1, x2, y2 = [float(i) for i in line.split('\t')]
     StdX0.append(x0)
     StdX1.append(x1)
     StdX2.append(x2)
@@ -65,12 +65,13 @@ with open(filename, "r") as f:
     pass
 
 
-lengthX = math.sqrt(math.pow(StdX1[0] - StdX0[0],2) + math.pow(StdY1[0] - StdY0[0],2))
+lengthY = math.sqrt(math.pow(StdX1[0] - StdX0[0],2) + math.pow(StdY1[0] - StdY0[0],2))
 
-lengthY = math.sqrt(math.pow(StdX1[0] - StdX2[0],2) + math.pow(StdY1[0] - StdY2[0],2))
+lengthX = math.sqrt(math.pow(StdX1[0] - StdX2[0],2) + math.pow(StdY1[0] - StdY2[0],2))
 
-centerX, centerY = 800,460
-filename = "replacementGPS_normalize.txt"
+centerX, centerY = 3180/2 - 1000 - 0,2160/2 - 250 - 200
+
+filename = "EQ7/displacementGPS_normalize.txt"
 
 with open(filename, "w") as f:
     # f.write("720\t"+\
@@ -79,8 +80,8 @@ with open(filename, "w") as f:
     #     str(X2[i])+"\t"+str(Y2[i])+"\t"+\
     #     "\n")
     for i in range(len(X0)):
-        curLengthX = math.sqrt(math.pow(StdX1[i] - StdX0[i],2) + math.pow(StdY1[i] - StdY0[i],2))
-        curLengthY = math.sqrt(math.pow(StdX1[i] - StdX2[i],2) + math.pow(StdY1[i] - StdY2[i],2))
+        curLengthY = math.sqrt(math.pow(StdX1[i] - StdX0[i],2) + math.pow(StdY1[i] - StdY0[i],2))
+        curLengthX = math.sqrt(math.pow(StdX1[i] - StdX2[i],2) + math.pow(StdY1[i] - StdY2[i],2))
         rateX = lengthX/curLengthX
         rateY = lengthY/curLengthY
         X0[i] = centerX - (centerX - X0[i]) * rateX
@@ -92,7 +93,7 @@ with open(filename, "w") as f:
         Y1[i] = centerY - (centerY - Y1[i]) * rateY
         Y2[i] = centerY + (Y2[i] - centerY) * rateY
         # Y3[i] = centerY + (Y3[i] - centerY) * rateY
-        f.write(str(i+721)+"\t"+\
+        f.write(str(i+3267)+"\t"+\
             str(X0[i])+"\t"+str(Y0[i])+"\t"+\
             str(X1[i])+"\t"+str(Y1[i])+"\t"+\
             str(X2[i])+"\t"+str(Y2[i])+"\t"+\

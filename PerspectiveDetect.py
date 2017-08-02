@@ -107,10 +107,10 @@ def cutConponent(img1,img2):
 
     return cutMap, np.float32(points)
 
-cap = cv2.VideoCapture('EQ5_Top.MOV')
+cap = cv2.VideoCapture('EQ7/EQ7_Top.avi')
 
 # ret, frame = cap.read()
-img1 = cv2.imread("frame394.png")
+img1 = cv2.imread("EQ7/Inkedframe3300pp_LI.jpg")
 img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
 r,c = img1.shape
 fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
@@ -118,9 +118,11 @@ fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
 
 # img1 = cv2.imread('Ground.png',0)          # queryImage
 
-frame_i = 0
-start_time = 25 - 1
-end_time = 55 + 1
+start_time = 0
+end_time = 32
+start_frame =  3266
+frame_i = start_frame + int(fps * start_time)
+
 MIN_MATCH_COUNT = 10
 
 while(1):
@@ -129,16 +131,17 @@ while(1):
         break
 
     frame_i = frame_i + 1
-    if (frame_i < fps * start_time):
+    if (frame_i < start_frame + int(fps * start_time)):
         continue
-    if (frame_i > fps * end_time):
+    if (frame_i > start_frame + int(fps * end_time)):
         break
+
     print frame_i
     
 
     # img2 = cv2.cvtColor(frame_p, cv2.COLOR_GRAY2RGB)
     img2,img2_Cut,pts2 = ps.preProcess(frame_p)
-    pts2 = expendPts(pts2,40)
+    pts2 = expendPts(pts2,10)
     # cv2.imshow("frame2",img2)
     #img2 = cv2.cvtColor(frame_p, cv2.COLOR_RGB2GRAY)
     # cv2.imshow("img3",img2)
@@ -173,7 +176,7 @@ while(1):
 
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
 
-        img2 = drawlines(img2,np.float32([ kp2[m.trainIdx].pt for m in good ]))
+        # img2 = drawlines(img2,np.float32([ kp2[m.trainIdx].pt for m in good ]))
 
         # matchesMask = mask.ravel().tolist()
         # h,w = img1.shape
@@ -191,7 +194,7 @@ while(1):
 
     #imgshow = cv2.resize(img2, None, fx = 0.2, fy= 0.2)
     #cv2.imshow("frame_Persp",imgshow)
-    cv2.imwrite("Preprocess2/frame%d.png"%(frame_i),img2)
+    cv2.imwrite("EQ7/Preprocess3/frame%d.png"%(frame_i),img2)
     #video.write(img2)
     # img1 = img2
     k = cv2.waitKey(1) & 0xff
@@ -201,50 +204,3 @@ while(1):
 #video.release()
 cap.release()
 cv2.destroyAllWindows()
-
-
-# cap = cv2.VideoCapture('Preprocess/video07_07.avi')
-
-# marker0 = cv2.imread("Marker/Marker0.png",0)
-# marker1 = cv2.imread("Marker/Marker1.png",0)
-# marker2 = cv2.imread("Marker/Marker2.png",0)
-
-# frame_i = 0
-
-# filename = "replacement.txt"
-
-# with open(filename, "w") as f:
-#     while(1):
-#         frame_i = frame_i + 1
-#         print frame_i
-#         ret, frame_p = cap.read()
-
-#         k = cv2.waitKey(30) & 0xff
-#         if k == 27:
-#             break
-
-#         img1 = cv2.cvtColor(frame_p,cv2.COLOR_RGB2GRAY)
-
-#         img_cut0, pts0 = cutConponent(marker0,img1)
-#         img_cut1, pts1 = cutConponent(marker1,img1)
-#         img_cut2, pts2 = cutConponent(marker2,img1)
-
-#         img1 = cv2.cvtColor(img1,cv2.COLOR_GRAY2BGR)
-#         cntX0, cntY0 = findCenter(img1,pts0,color = (0,255,0))
-#         cntX1, cntY1 = findCenter(img1,pts1,color = (255,0,0))
-#         cntX2, cntY2 = findCenter(img1,pts2,color = (0,0,255))
-
-#         f.write(str(frame_i)+"\t"+\
-#                 str(cntX0)+"\t"+str(cntY0)+"\t"+ \
-#                 str(cntX1)+"\t"+str(cntY1)+"\t"+ \
-#                 str(cntX2)+"\t"+str(cntY2)+"\t"+ "\n")
-
-#         # imgshow = cv2.resize(img1, None, fx = 0.5, fy= 0.5)
-#         # cv2.imshow("img_Marker",imgshow)
-
-# cap.release()
-# cv2.destroyAllWindows()
-
-# plt.subplot(121),plt.imshow(img5)
-# plt.subplot(122),plt.imshow(img3)
-# plt.show()

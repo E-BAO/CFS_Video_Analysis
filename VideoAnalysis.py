@@ -21,9 +21,9 @@ def findCenter(img, pts, color):
         print("Points less than 2")
     return ctX, ctY
 
-frame_i = 719
+frame_i = 3266
 
-filename = "replacementGPS.txt"
+filename = "EQ7/replacementGPS.txt"
 
 # params for ShiTomasi corner detection
 feature_params = dict( maxCorners = 100,
@@ -39,9 +39,10 @@ color = np.random.randint(0,255,(100,3))
 
 # resize = [260:r - 440,140:c - 920]
 
-old_frame = cv2.imread("Preprocess3/frame720.png")
+old_frame = cv2.imread("EQ7/Preprocess3/frame3267.png")
 r,c,a = old_frame.shape
-old_frame = old_frame[260:r - 130,140:c - 580]
+# old_frame = old_frame[260:r - 130,140:c - 580] #EQ5
+old_frame = old_frame[200:r - 100,0:c - 600]
 old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
 p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **feature_params)
 
@@ -93,9 +94,12 @@ def on_key(event):
         print('reset')
         N = 0
     if event.key is 'u':
-        p00[0,0,:] = 834, 596 #r
-        p00[1,0,:] = 1374, 103 #g
-        p00[2,0,:] = 1374, 873 #b
+        # p00[0,0,:] = 834, 596 #r
+        # p00[1,0,:] = 1374, 103 #g
+        # p00[2,0,:] = 1374, 873 #b
+        p00[0,0,:] = 822, 778#r
+        p00[1,0,:] = 1361, 289 #g
+        p00[2,0,:] = 1358, 1052 #b   
         N = 3
 
 # fig.canvas.mpl_connect('pick_event', onpick)
@@ -114,20 +118,21 @@ p0 = p00
 mask = np.zeros_like(old_frame)
 row,col = old_gray.shape
 fourcc = cv2.cv.CV_FOURCC(*'XVID')
-video = cv2.VideoWriter('OFGPS.avi',fourcc, 30.0, (col,row))
+# video = cv2.VideoWriter('EQ7/OFCneter.avi',fourcc, 30.0, (col,row))
 
 with open(filename, "w") as f:
     color = [(255, 0, 0),(0, 0, 255),(0, 255, 0),(0, 0, 255),(255, 0, 0),(0, 255, 255),(0, 255, 0),(0, 0, 255)]
     while(1):
         frame_i = frame_i + 1
         print frame_i
-        frame = cv2.imread("Preprocess3/frame%d.png"%(frame_i))
+        frame = cv2.imread("EQ7/Preprocess3/frame%d.png"%(frame_i))
 
         if frame is None:
             break
 
         r,c,a = frame.shape
-        frame = frame[260:r - 130,140:c - 580] #140 620
+        # frame = frame[260:r - 130,140:c - 580] #140 620
+        frame = frame[200:r - 100,0:c - 600]
         # frame = frame[240:r - 140,150:c - 620]
         # frame = frame[230:r - 100,230:c - 520]
         
@@ -148,7 +153,7 @@ with open(filename, "w") as f:
             cv2.line(mask, (a,b),(c,d), color[i], 3)
             cv2.circle(frame,(a,b),5,color[i],-1)
         img = cv2.add(frame,mask)
-        video.write(img)
+        # video.write(img)
 
         img = cv2.resize(img, None, fx = 0.5, fy= 0.5)
         
