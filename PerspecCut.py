@@ -53,7 +53,7 @@ def cutConponent(img1,img2):
         pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
         dst = cv2.perspectiveTransform(pts,M)
 
-        pts = expendPts(dst.reshape(1,-1,2)[0], 30)
+        pts = expendPts(dst.reshape(1,-1,2)[0], 10)
 
         dst = np.float32(pts).reshape(-1,1,2)
 
@@ -79,16 +79,48 @@ def preProcess(img):
     # img = img[360:r - 500,1090:c - 600]
     #img = img[200:r,800:c - 600]
     # img[360:r - 430,980:c - 600] #EQ5
-    img = img[250:r - 400,1000:c - 600] #EQ7
+    # img_corp = img[250:r - 400,1000:c - 600] #EQ7
+    img_corp = img[250:r - 50,800:c - 540] #EQ7
     #img = img[100:r - 100,250:c - 250]
     img_roof = cv2.imread('EQ7/roof.png',0)  # queryImage
     
     # img_frameTop = cv2.imread('top_frame.png',0)
     # img_frameLeft = cv2.imread('leftFrame.png',0)
     #img_right = cv2.imread('right_reference.png',0)  # queryImage
-    img_cut, pts = cutConponent(img_roof,img)
+    img_cut, pts = cutConponent(img_roof,img_corp)
     #img = cutConponent(img_framedown,img)
     #img = cutConponent(img_frameLeft,img)
     #img = cutConponent(img_frameTop,img)
 
     return img, img_cut, pts
+
+def preProcess_origin(img):
+    #img = cv2.resize(img, None, fx = 0.5, fy=0.5)
+    # img = cv2.cvtColor(img,cv2.COLOR_RGB2GRAY)
+    r,c = img.shape
+    #img = img[180:r - 150,315:c - 200]
+    # img = img[360:r - 500,1090:c - 600]
+    #img = img[200:r,800:c - 600]
+    # img[360:r - 430,980:c - 600] #EQ5
+    # corp = [250,r - 200,200,c - 200]
+    corp = [300,r - 140,800,c - 500]
+    img_corp = img[corp[0]:corp[1],corp[2]:corp[3]] #EQ7
+    #img = img[100:r - 100,250:c - 250]
+    img_roof = cv2.imread('EQ5/roof.png',0)  # queryImage
+    
+    # img_frameTop = cv2.imread('top_frame.png',0)
+    # img_frameLeft = cv2.imread('leftFrame.png',0)
+    #img_right = cv2.imread('right_reference.png',0)  # queryImage
+    img_cut, pts = cutConponent(img_roof,img_corp)
+    # img_cut = cv2.resize(img_cut, None, fx = 0.3, fy=0.3)
+    # cv2.imshow("img",img_cut)
+    # cv2.waitKey(0)
+    # img[:,:] = 0
+    # img[corp[0]:corp[1],corp[2]:corp[3]] = img_cut
+    # pts[:,0] = [x + corp[0] for x in pts[:,0]]
+    # pts[:,1] = [y + corp[2] for y in pts[:,1]]
+    #img = cutConponent(img_framedown,img)
+    #img = cutConponent(img_frameLeft,img)
+    #img = cutConponent(img_frameTop,img)
+
+    return img_cut, pts, corp

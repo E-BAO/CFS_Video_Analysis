@@ -60,37 +60,34 @@ def drawlines(img1,pts1):
     img1 = cv2.cvtColor(img1,cv2.COLOR_GRAY2BGR)
     for pt1 in pts1:
         color = tuple(np.random.randint(0,255,3).tolist())
-        cv2.circle(img1,tuple(pt1),2,color,-1)
+        cv2.circle(img1,tuple(pt1),4,color,-1)
 
     return img1
 
-
-
-
-cap = cv2.VideoCapture('EQ7/EQ7_Top.avi')
-fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-start_time = 0
-end_time = 32
-start_frame =  3266
-frame_i = start_frame + int(fps * start_time)
+# cap = cv2.VideoCapture('EQ7/EQ7_Top.avi')
+# fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+# start_time = 0
+# end_time = 32
+# start_frame =  3266
+frame_i = 720
 
 MIN_MATCH_COUNT = 4
-file_pattern = 'EQ7/frame3300.jpg'
+file_pattern = 'EQ5/ReferenceGround.jpg'
 img1 = cv2.imread(file_pattern,0)          # queryImage
 
-pattern_image = cv2.imread("EQ7/frame3300_roof.png")
-pattern_image = cv2.resize(pattern_image, None, fx = 0.1, fy=0.1)
+# pattern_image = cv2.imread("EQ5/ReferenceGround.png")
+# pattern_image = cv2.resize(pattern_image, None, fx = 0.1, fy=0.1)
 # pattern_image = cv2.flip(cv2.transpose(pattern_image), 0)
 
 # Plot pattern
-height = pattern_image.shape[0]
-width = pattern_image.shape[1]
-xx, yy = np.meshgrid(np.linspace(0, width * 0.5, width), 
-    np.linspace(height * 0.5,0, height))
+# height = pattern_image.shape[0]
+# width = pattern_image.shape[1]
+# xx, yy = np.meshgrid(np.linspace(0, width * 0.5, width), 
+#     np.linspace(height * 0.5,0, height))
 
 # Establish global figure
-gf.fig = plt.figure()
-gf.ax = gf.fig.add_subplot(111, projection='3d')
+# gf.fig = plt.figure()
+# gf.ax = gf.fig.add_subplot(111, projection='3d')
 
 # Set axes labels
 # gf.ax.set_xlabel('X')
@@ -105,17 +102,16 @@ gf.ax = gf.fig.add_subplot(111, projection='3d')
 
 # plt.gca().set_aspect('equal', adjustable='box')
 
-with open("EQ7/Displacement_Camera", "w") as f:
-    while(1):
-        ret, frame_p = cap.read()
-        if frame_p is None:
-            break
+sift = cv2.SIFT()
 
-        frame_i = frame_i + 1
-        if (frame_i < start_frame + int(fps * start_time)):
-            continue
-        if (frame_i > start_frame + int(fps * end_time)):
-            break
+# find the keypoints and descriptors with SIFT
+kp1, des1 = sift.detectAndCompute(img1,None)
+
+with open("EQ5/CameraPoseDetectepnpIt.txt", "w") as f:
+    while(frame_i <= 1678):
+        print frame_i
+
+        frame_p = cv2.imread("EQ5/Frames/frame%d.png"%(frame_i))
 
         # gf.ax.cla()
 
@@ -129,6 +125,7 @@ with open("EQ7/Displacement_Camera", "w") as f:
 
         img2 = cv2.cvtColor(frame_p, cv2.COLOR_RGB2GRAY)
 
+        print "pre......."
         img2_Cut,pts2,corp = ps.preProcess_origin(img2)
         # array([[ 184,  409],
         #    [ 170, 1347],
@@ -138,10 +135,6 @@ with open("EQ7/Displacement_Camera", "w") as f:
 
         print "matching..."
         #Initiate SIFT detector
-        sift = cv2.SIFT()
-
-        # find the keypoints and descriptors with SIFT
-        kp1, des1 = sift.detectAndCompute(img1,None)
         kp2, des2 = sift.detectAndCompute(img2_Cut,None)
 
         FLANN_INDEX_KDTREE = 0
@@ -168,15 +161,18 @@ with open("EQ7/Displacement_Camera", "w") as f:
             src_pts = np.float32([ kp2[m.trainIdx].pt for m in good ])
             src_pts[:,0] = [x + corp[2] for x in src_pts[:,0]]
             src_pts[:,1] = [y + corp[0] for y in src_pts[:,1]]
-            # img2 = drawlines(img2, src_pts)
+
+            print "actually_______________",len(src_pts),len(dst_pts)
             
-            # imgshow = cv2.resize(img2, None, fx = 0.5, fy= 0.5)
+            img2 = drawlines(img2, src_pts)
+            imgshow = cv2.resize(img2, None, fx = 0.3, fy= 0.3)
 
-            # cv2.imshow("frame_Persp",imgshow)
-            # k = cv2.waitKey(0) & 0xff
-            # if k == 27:
-            #     break
+            cv2.imshow("frame_preprocess",imgshow)
+            k = cv2.waitKey(1) & 0xff
+            if k == 27:
+                break
 
+            print "R T ....."
             # depth = np.zeros(len(src_pts))
             # src_pts = np.c_[src_pts, depth]
 
@@ -184,80 +180,102 @@ with open("EQ7/Displacement_Camera", "w") as f:
             focal_length = size[1]
             camera_center = (size[1] / 2, size[0] / 2)
 
+            sw = 6.16
+            sh = 4.62
+            cw = 4000
+            ch = 3000
+            dx = sw/cw
+            dy = sh/ch
+            ff = 20
+            fx = ff/dx
+            fy = ff/dy
+            u0 = size[1] / 2 
+            v0 = size[0] / 2
+
             # Initialize approximate camera intrinsic matrix
-            camera_intrinsic_matrix = np.array([[focal_length, 0, camera_center[0]],
-                                                [0, focal_length, camera_center[1]],
+            camera_intrinsic_matrix = np.array([[fx, 0, u0],
+                                                [0, fy, v0],
                                                 [0, 0, 1]
                                                 ], dtype = "double")
 
             # Assume there is no lens distortion
             dist_coeffs = np.zeros((4, 1))
 
-            # Get camera extrinsic matrix - R and T
+
             flag, rotation_vector, translation_vector = cv2.solvePnP(   dst_pts, 
                                                                         src_pts, 
                                                                         camera_intrinsic_matrix, 
                                                                         dist_coeffs, 
-                                                                        flags=cv2.CV_ITERATIVE  )
+                                                                        flags=cv2.CV_ITERATIVE   )
 
             # Convert 3x1 rotation vector to rotation matrix for further computation
-            rotation_matrix, jacobian = cv2.Rodrigues(rotation_vector)
 
-            # C = -R.transpose() * T
-            C = np.matmul(-rotation_matrix.transpose(), translation_vector)
+            print rotation_vector
 
-            # Orientation vector
-            O = np.matmul(rotation_matrix.T, np.array([0, 0, 1]).T)
+            rotation_vector = rotation_vector.squeeze()
+            translation_vector = translation_vector.squeeze()
+            f.write(str(frame_i) + "\t")
 
-            camera_pose, camera_orientation  = C.squeeze(), O
+            for i in range(3):
+                f.write(str(rotation_vector[i]) + "\t")
+            for i in range(3):
+                f.write(str(translation_vector[i]) + "\t")
 
-            # Equal the unit scale, some embellishment
-            f.write(str(frame_i)+\
-                "\t"+str(camera_pose[0])+"\t"+str(camera_pose[0])+"\t"+str(camera_pose[0])+"\t"\
-                "\t"+str(camera_orientation[0])+"\t"+str(camera_orientation[0])+"\t"+str(camera_orientation[0])+"\t\n")
-            
-            print frame_i
-
-            # camera_pose = [i/20 for i in camera_pose]
-
-            # camera_pose[2] = - camera_pose[2]
-            # camera_orientation[2] = -camera_orientation[2]
-
-            # # max_unit_length = max(30, max(camera_pose[:3])) + 30
-
-            # # Decompose the camera coordinate
-            # arrow_length =  - camera_pose[2] / camera_orientation[2]
-            # xs = [camera_pose[0], camera_pose[0] + camera_orientation[0] * arrow_length]
-            # ys = [camera_pose[1], camera_pose[1] + camera_orientation[1] * arrow_length]
-            # zs = [camera_pose[2], 0]
-
-            
-
-            # # Plot camera location
-            # gf.ax.scatter([camera_pose[0]], [camera_pose[1]], [camera_pose[2]])
-            # # item.append(ax_camera)
-
-            # label = '%d (%5d, %5d, %5d)' % (frame_i, camera_pose[0], camera_pose[1], camera_pose[2])
-            # gf.ax.text(camera_pose[0], camera_pose[1], camera_pose[2], label)
-            # # item.append(ax_label)
-
-            # arrow = Arrow3D(xs, ys, zs, mutation_scale=5, lw=1, arrowstyle="-|>", color="r")
-            # gf.ax.add_artist(arrow)
-
-            # # Prepare pattern image
-            # # To cater to the settings of matplotlib, 
-            # # we need the second line here to rotate the image 90 degree counterclockwise
-
-            # X = xx
-            # Y = yy
-            # Z = 0
-            # gf.ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=pattern_image / 255., shade=False)
-        
-            # plt.pause(.000001)
-
-    
+            f.write("\n")
 
 
+            # rotation_matrix, jacobian = cv2.Rodrigues(rotation_vector)
+
+            # # C = -R.transpose() * T
+            # Ox = np.matmul(rotation_matrix.T, np.array([1, 0, 0]).T)
+            # Oy = np.matmul(rotation_matrix.T, np.array([0, 1, 0]).T)
+            # Oz = np.matmul(rotation_matrix.T, np.array([0, 0, 1]).T)
+
+            # C = np.matmul(-rotation_matrix.transpose(), translation_vector)
+
+            # camera_pose = C.squeeze()
+            # R = rotation_matrix
+            # T = translation_vector.squeeze() # - np.dot(srcR, srcC)
+            # Extrinsic_matrix = np.column_stack((R, T))
+            # print "Extrinsic_matrix_______________\n",Extrinsic_matrix
+
+            # # K = np.row_stack((Intrinsic_matrix, np.float32([0,0,0])))
+            # # K = np.column_stack((K, np.float32([0,0,0,1])))
+
+            # # E = np.row_stack((Extrinsic_matrix, np.float32([0,0,0,1])))
+
+            # # KdotE = np.dot(K, E)
+
+            # # print "KdotE_______________\n",KdotE
+
+            # # Ox = np.matmul(rotation_matrix.T, np.array([1, 0, 0]).T)
+            # # Oy = np.matmul(rotation_matrix.T, np.array([0, 1, 0]).T)
+            # # Oz = np.matmul(rotation_matrix.T, np.array([0, 0, 1]).T)
+            # # Equal the unit scale, some embellishment
+            # f.write(str(frame_i) + "\n")
+
+            # for i in range(3):
+            #     for j in range(3):
+            #         f.write(str(camera_intrinsic_matrix[i][j]) + "\t")
+            #     f.write("\n")
+
+            # # f.write("\n")
+
+            # for i in range(3):
+            #     for j in range(4):
+            #         f.write(str(Extrinsic_matrix[i][j]) + "\t")
+            #     f.write("\n")
+
+            # f.write("\n")
+            # +\
+            #     "\t"+str(camera_pose[0])+"\t"+str(camera_pose[1])+"\t"+str(camera_pose[2])+\
+            #     "\t"+str(Oz[0])+"\t"+str(Oz[1])+"\t"+str(Oz[2])+"\t\n")
+
+            frame_i = frame_i + 1
+
+        else:
+            print "Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT)
+            matchesMask = None
 
 # Show the plots
 # plt.show()

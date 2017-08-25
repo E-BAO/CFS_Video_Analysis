@@ -65,34 +65,40 @@ def drawlines(img1,pts1):
 
     return img1
 
-cap = cv2.VideoCapture('EQ7/EQ7_Top.avi')
+cap = cv2.VideoCapture('EQ5/EQ5_Top.avi')
 
 # ret, frame = cap.read()
-img1 = cv2.imread("EQ7/frame3300.jpg")
+img1 = cv2.imread("EQ5/ReferenceGround.jpg")
 img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
 r,c = img1.shape
-fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+# fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
 #video  = cv2.VideoWriter('Preprocess2/video07_07.avi', -1, fps, (c, r));
 
 # img1 = cv2.imread('Ground.png',0)          # queryImage
 
-start_time = 0
-end_time = 32
-start_frame =  3266
-frame_i = start_frame + int(fps * start_time)
+# start_time = 0
+# end_time = 32
+# start_frame =  720
+# frame_i = start_frame + int(fps * start_time)
+
+frame_i = 720
 
 MIN_MATCH_COUNT = 10
 
+sift = cv2.SIFT()
+kp1, des1 = sift.detectAndCompute(img1,None)
+
 while(1):
-    ret, frame_p = cap.read()
+    # ret, frame_p = cap.read()
+    frame_p = cv2.imread("EQ5/Frames/frame%d"(frame_i))
     if frame_p is None:
         break
 
-    frame_i = frame_i + 1
-    if (frame_i < start_frame + int(fps * start_time)):
-        continue
-    if (frame_i > start_frame + int(fps * end_time)):
-        break
+    # frame_i = frame_i + 1
+    # if (frame_i < start_frame + int(fps * start_time)):
+    #     continue
+    # if (frame_i > start_frame + int(fps * end_time)):
+    #     break
 
     print frame_i
     
@@ -110,10 +116,8 @@ while(1):
 
     print "matching..."
     #Initiate SIFT detector
-    sift = cv2.SIFT()
 
     # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1,None)
     kp2, des2 = sift.detectAndCompute(img2_Cut,None)
 
     FLANN_INDEX_KDTREE = 0

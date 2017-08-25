@@ -6,25 +6,25 @@ import matplotlib.animation as manimation
 import cv2  
 import math
 
-filename = "EQ7/displacementGPS.txt"
+filename = "EQ7/displacementCt3.txt"
 
 X0 = []
 X1 = []
 X2 = []
-# X3 = []
+X3 = []
 Y0 = []
 Y1 = []
 Y2 = []
-# Y3 = []
+Y3 = []
 
 with open(filename, "r") as f:
   while 1:
     line = f.readline() 
     if not line:
         break
-        pass
     line = line[:line.find('\t\n')]
-    frame_i, x0, y0, x1, y1, x2, y2 = [float(i) for i in line.split('\t')]
+    frame_i, x0, y0, x1, y1, x2, y2= [float(i) for i in line.split('\t')]
+    print frame_i
     X0.append(x0)
     X1.append(x1)
     X2.append(x2)
@@ -36,42 +36,68 @@ with open(filename, "r") as f:
     pass
 
 
-filename = "EQ7/displacementCt.txt"
+# filename = "EQ7/displacementCt4_NONOISE_Normalize.txt"
 
-StdX0 = []
-StdX1 = []
-StdX2 = []
-StdY0 = []
-StdY1 = []
-StdY2 = []
-# Y3 = []
+# StdX0 = []
+# StdX1 = []
+# StdX2 = []
+# StdY0 = []
+# StdY1 = []
+# StdY2 = []
+# # Y3 = []
 
-with open(filename, "r") as f:
-  while 1:
-    line = f.readline() 
-    if not line:
-        break
-        pass
-    line = line[:line.find('\t\n')]
-    frame_i, x0, y0, x1, y1, x2, y2 = [float(i) for i in line.split('\t')]
-    StdX0.append(x0)
-    StdX1.append(x1)
-    StdX2.append(x2)
-    # X3.append(x3)
-    StdY0.append(y0)
-    StdY1.append(y1)
-    StdY2.append(y2)
-    # Y3.append(y3)
-    pass
+# with open(filename, "r") as f:
+#   while 1:
+#     line = f.readline() 
+#     if not line:
+#         break
+#         pass
+#     line = line[:line.find('\t\n')]
+#     frame_i, x0, y0, x1, y1, x2, y2 = [float(i) for i in line.split('\t')]
+#     StdX0.append(x0)
+#     StdX1.append(x1)
+#     StdX2.append(x2)
+#     # X3.append(x3)
+#     StdY0.append(y0)
+#     StdY1.append(y1)
+#     StdY2.append(y2)
+#     # Y3.append(y3)
+#     pass
 
 
-lengthY = math.sqrt(math.pow(StdX1[0] - StdX0[0],2) + math.pow(StdY1[0] - StdY0[0],2))
+# lengthY = math.sqrt(math.pow(StdX1[0] - StdX0[0],2) + math.pow(StdY1[0] - StdY0[0],2))
+# lengthX = math.sqrt(math.pow(StdX1[0] - StdX2[0],2) + math.pow(StdY1[0] - StdY2[0],2))
 
-lengthX = math.sqrt(math.pow(StdX1[0] - StdX2[0],2) + math.pow(StdY1[0] - StdY2[0],2))
+# centerX, centerY = 3180/2 - 1000 - 0,2160/2 - 250 - 200
 
-centerX, centerY = 3180/2 - 1000 - 0,2160/2 - 250 - 200
+# pixel2m = 
+# m2inch = 39.3701
 
-filename = "EQ7/displacementGPS_normalize.txt"
+# 165 -> 470 
+# 2.85
+
+def denoise(X0):
+    x = np.linspace(1, len(X0), len(X0))
+    y = [X0[k] for k in range(len(X0))]
+    rft = np.fft.rfft(y)
+    rft[30:] = 0
+    y_smooth = np.fft.irfft(rft)
+    a = y_smooth[len(y_smooth) - 1:]
+    y_smooth = np.append(y_smooth,a)  
+    return y_smooth
+
+
+X0 = denoise(X0)
+X1 = denoise(X1)
+X2 = denoise(X2)
+# X3 = denoise(X3)
+
+Y0 = denoise(Y0)
+Y1 = denoise(Y1)
+Y2 = denoise(Y2)
+# Y3 = denoise(Y3)
+
+filename = "EQ7/displacementCt3_Inch1.txt"
 
 with open(filename, "w") as f:
     # f.write("720\t"+\
@@ -80,19 +106,25 @@ with open(filename, "w") as f:
     #     str(X2[i])+"\t"+str(Y2[i])+"\t"+\
     #     "\n")
     for i in range(len(X0)):
-        curLengthY = math.sqrt(math.pow(StdX1[i] - StdX0[i],2) + math.pow(StdY1[i] - StdY0[i],2))
-        curLengthX = math.sqrt(math.pow(StdX1[i] - StdX2[i],2) + math.pow(StdY1[i] - StdY2[i],2))
-        rateX = lengthX/curLengthX
-        rateY = lengthY/curLengthY
-        X0[i] = centerX - (centerX - X0[i]) * rateX
-        X1[i] = centerX + (X1[i] - centerX) * rateX
-        # X3[i] = centerX - (centerX - X3[i]) * rateX
-        X2[i] = centerX + (X2[i] - centerX) * rateX
+        # curLengthY = math.sqrt(math.pow(StdX1[i] - StdX0[i],2) + math.pow(StdY1[i] - StdY0[i],2))
+        # curLengthX = math.sqrt(math.pow(StdX1[i] - StdX2[i],2) + math.pow(StdY1[i] - StdY2[i],2))
+        
+        # pixel2inch = 164.80315/curLengthY
 
-        Y0[i] = centerY + (Y0[i] - centerY) * rateY
-        Y1[i] = centerY - (centerY - Y1[i]) * rateY
-        Y2[i] = centerY + (Y2[i] - centerY) * rateY
-        # Y3[i] = centerY + (Y3[i] - centerY) * rateY
+        pixel2inch = 0.345
+
+        # rateX = lengthX/curLengthX
+        # rateY = lengthY/curLengthY
+        X0[i] = pixel2inch * X0[i] #(centerX - (centerX - X0[i]) * rateX)* pixel2inch
+        X1[i] = pixel2inch * X1[i]#(centerX + (X1[i] - centerX) * rateX) * pixel2inch
+        # X3[i] = centerX - (centerX - X3[i]) * rateX
+        X2[i] = pixel2inch * X2[i] #(centerX + (X2[i] - centerX) * rateX) * pixel2inch
+        # X3[i] = pixel2inch * X3[i]
+        
+        Y0[i] = pixel2inch * Y0[i]#(centerY + (Y0[i] - centerY) * rateY) * pixel2inch
+        Y1[i] = pixel2inch * Y1[i]#(centerY - (centerY - Y1[i]) * rateY) * pixel2inch
+        Y2[i] = pixel2inch * Y2[i]#(centerY + (Y2[i] - centerY) * rateY) * pixel2inch
+        # Y3[i] = pixel2inch * Y3[i]#centerY + (Y3[i] - centerY) * rateY
         f.write(str(i+3267)+"\t"+\
             str(X0[i])+"\t"+str(Y0[i])+"\t"+\
             str(X1[i])+"\t"+str(Y1[i])+"\t"+\

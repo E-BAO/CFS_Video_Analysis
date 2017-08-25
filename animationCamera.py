@@ -8,7 +8,7 @@ import utilities as ut
 from utilities import Arrow3D
 import global_figure as gf
 
-filename = "EQ7/Displacement_more_Camera_ac.txt"
+filename = "EQ7/Calibration/CalibrationDenoise.txt"
 
 # Establish global figure
 gf.fig = plt.figure()
@@ -19,12 +19,9 @@ gf.ax = gf.fig.add_subplot(111, projection='3d')
 gf.ax.set_xlabel('X')
 gf.ax.set_ylabel('Y')
 gf.ax.set_zlabel('Z')
-
-max_unit_length = 250
-
-gf.ax.set_xlim3d(0, 150)
-gf.ax.set_ylim3d(0, 150)
-gf.ax.set_zlim3d(0, 250)
+gf.ax.set_xlim3d(0, 25)
+gf.ax.set_ylim3d(0, 25)
+gf.ax.set_zlim3d(0, 50)
 
 plt.gca().set_aspect('equal', adjustable='box')
 
@@ -36,14 +33,14 @@ pattern_image = cv2.resize(pattern_image, None, fx = 0.1, fy=0.1)
 # Plot pattern
 height = pattern_image.shape[0]
 width = pattern_image.shape[1]
-xx, yy = np.meshgrid(np.linspace(0, width * 0.5, width), 
-    np.linspace(height * 0.5,0, height))
+xx, yy = np.meshgrid(np.linspace(0, width * 0.05, width), 
+    np.linspace(height * 0.05,0, height))
 
 X = xx
 Y = yy
 Z = 0
 
-ax_image = gf.ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=pattern_image / 255., shade=False)
+ax_image = gf.ax.plot_surface(X, Y, Z, rstride=2, cstride=2, facecolors=pattern_image / 255., shade=False)
 
 camera_pose = [0,0,0]
 camera_orientation = [0,0,0]
@@ -53,7 +50,8 @@ metadata = dict(title='Movie Test', artist='Matplotlib',
                 comment='Movie support!')
 writer = FFMpegWriter(fps=30, metadata=metadata)
 
-with writer.saving(gf.fig, "EQ7/CameraMovement_ac.mp4", dpi = 100):
+flag = 0
+with writer.saving(gf.fig, "EQ7/CameraMovement_denoise2.mp4", dpi = 100):
     with open(filename, "r") as f:
         ax_text = None
 
@@ -67,6 +65,7 @@ with writer.saving(gf.fig, "EQ7/CameraMovement_ac.mp4", dpi = 100):
 
             # part1, part2 = [str(i) for i in line.split('\t\t')]
             frame_i, camera_pose[0], camera_pose[1], camera_pose[2],\
+             _,_,_,_,_,_,\
              camera_orientation[0], camera_orientation[1], camera_orientation[2] \
              = [float(i) for i in line.split('\t')]
              # = [float(i) for i in part2.split('\t')]
@@ -77,26 +76,19 @@ with writer.saving(gf.fig, "EQ7/CameraMovement_ac.mp4", dpi = 100):
 
             print frame_i
 
-            gf.ax.cla()
+            # gf.ax.cla()
 
-            gf.ax.set_xlabel('X')
-            gf.ax.set_ylabel('Y')
-            gf.ax.set_zlabel('Z')
-            gf.ax.set_xlim3d(0, 150)
-            gf.ax.set_ylim3d(0, 150)
-            gf.ax.set_zlim3d(0, 250)
+            if flag:
+                # gf.ax.texts.remove(ax_text)
+                gf.ax.collections.remove(ax_camera)
+                gf.ax.artists.remove(arrow)
 
-            plt.gca().set_aspect('equal', adjustable='box')
+            pixel2inch = 0.345
 
-            # if ax_text:
-            #     gf.ax.texts.remove(ax_text)
-            #     gf.ax.collections.remove(ax_camera)
-            #     gf.ax.remove(arrow)
+            # label = '%d (%5d, %5d, %5d)' % (frame_i, camera_pose[0], camera_pose[1], camera_pose[2])
+            # ax_text = gf.ax.text(camera_pose[0], camera_pose[1], camera_pose[2], label)
 
-            label = '%d (%5d, %5d, %5d)' % (frame_i, camera_pose[0], camera_pose[1], camera_pose[2])
-            ax_text = gf.ax.text(camera_pose[0], camera_pose[1], camera_pose[2], label)
-
-            camera_pose = [i/20 for i in camera_pose]
+            camera_pose = [i/200 for i in camera_pose]
             camera_pose[2] = - camera_pose[2]
             camera_orientation[2] = -camera_orientation[2]
 
@@ -109,7 +101,7 @@ with writer.saving(gf.fig, "EQ7/CameraMovement_ac.mp4", dpi = 100):
             zs = [camera_pose[2], 0]
 
             # Plot camera location
-            ax_camera = gf.ax.scatter([camera_pose[0]], [camera_pose[1]], [camera_pose[2]])
+            ax_camera = gf.ax.scatter([camera_pose[0]], [camera_pose[1]], [camera_pose[2]],color='blue')
             # item.append(ax_camera)
             # item.append(ax_label)
 
@@ -119,8 +111,9 @@ with writer.saving(gf.fig, "EQ7/CameraMovement_ac.mp4", dpi = 100):
             # Prepare pattern image
             # To cater to the settings of matplotlib, 
             # we need the second line here to rotate the image 90 degree counterclockwise
-            ax_image = gf.ax.plot_surface(X, Y, Z, rstride=1, cstride=1, facecolors=pattern_image / 255., shade=False)
+            # ax_image = gf.ax.plot_surface(X, Y, Z, rstride=2, cstride=2, facecolors=pattern_image / 255., shade=False)
 
+            flag = 1
             # plt.pause(.0001)
 
             writer.grab_frame()

@@ -22,37 +22,40 @@ def drawlines(img1,img2,lines,pts1,pts2):
 
     return img1,img2
 
-cap = cv2.VideoCapture('EQ7/EQ7_Top.avi')
+cap = cv2.VideoCapture('EQ7/OFGPS.avi')
 
 ret, frame = cap.read()
-img1 = Matching.preProcess(frame)
-r,c = img1.shape
+# img1 = Matching.preProcess(frame)
+r,c,a = frame.shape
 fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-#video  = cv2.VideoWriter('video.avi', -1, fps, (c, r));
+video  = cv2.VideoWriter('EQ7/PPT/OFGPS.mov', -1, fps, (c, r))
 
 
-start_time = 1
-end_time = 31
-start_frame =  3267
-frame_i = start_frame + int(fps * start_time)
+start_time = 5
+end_time = 20
+start_frame =  0
+frame_i = 0#start_frame + int(fps * start_time)
 
 while(1):
     ret, frame_p = cap.read()
     if frame_p is None:
         break
-
+    print frame_i
     frame_i = frame_i + 1
     if (frame_i < start_frame + int(fps * start_time)):
         continue
     if (frame_i > start_frame + int(fps * end_time)):
         break
-
-    print frame_i
+    video.write(frame_p)
+    # cv2.imshow('video',frame_p)
+    # k = cv2.waitKey(30) & 0xff
+    # if k == 27:
+    #     break
     
-    img2 = Matching.preProcess(frame_p)
+    # img2 = Matching.preProcess(frame_p)
     # img2 = cv2.cvtColor(img2, cv2.COLOR_RGB2GRAY)
-    cv2.imwrite("EQ7/img2/frame%d.png"%(frame_i),img2)
-    # video.write(img2)
+    # cv2.imwrite("EQ7/img2/frame%d.png"%(frame_i),img2)
+    
     
     # orb = cv2.ORB()
 
@@ -105,9 +108,7 @@ while(1):
 
     #img1 = img2
 
-    k = cv2.waitKey(1) & 0xff
-    if k == 27:
-        break
+    
 
 # video.release()
 cap.release()

@@ -54,7 +54,7 @@ def drawlines(img1,pts1):
     img1 = cv2.cvtColor(img1,cv2.COLOR_GRAY2BGR)
     for pt1 in pts1:
         color = tuple(np.random.randint(0,255,3).tolist())
-        cv2.circle(img1,tuple(pt1),2,color,-1)
+        cv2.circle(img1,tuple(pt1),5,color,-1)
 
     return img1
 
@@ -107,50 +107,40 @@ def cutConponent(img1,img2):
 
     return cutMap, np.float32(points)
 
-cap = cv2.VideoCapture('EQ7/EQ7_Top.avi')
+# cap = cv2.VideoCapture('EQ5/EQ5_Top.avi')
 
 # ret, frame = cap.read()
-img1 = cv2.imread("EQ7/Inkedframe3300pp_LI.jpg")
-img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
+img1 = cv2.imread("EQ5/frame396_ground.jpg",0)
+# img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
 r,c = img1.shape
-fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+frame_i = 720
+# fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
 #video  = cv2.VideoWriter('Preprocess2/video07_07.avi', -1, fps, (c, r));
 
 # img1 = cv2.imread('Ground.png',0)          # queryImage
 
-start_time = 0
-end_time = 32
-start_frame =  3266
-frame_i = start_frame + int(fps * start_time)
-
+sift = cv2.SIFT()
+kp1, des1 = sift.detectAndCompute(img1,None)
 MIN_MATCH_COUNT = 10
 
 while(1):
-    ret, frame_p = cap.read()
+    frame_p = cv2.imread("EQ5/Frames/frame%d.png"%(frame_i),0)
     if frame_p is None:
         break
-
-    frame_i = frame_i + 1
-    if (frame_i < start_frame + int(fps * start_time)):
-        continue
-    if (frame_i > start_frame + int(fps * end_time)):
-        break
-
     print frame_i
-    
 
     # img2 = cv2.cvtColor(frame_p, cv2.COLOR_GRAY2RGB)
-    img2,img2_Cut,pts2 = ps.preProcess(frame_p)
+    img2_Cut,pts2,corp = ps.preProcess_origin(frame_p)
     pts2 = expendPts(pts2,10)
     # cv2.imshow("frame2",img2)
     #img2 = cv2.cvtColor(frame_p, cv2.COLOR_RGB2GRAY)
     # cv2.imshow("img3",img2)
 
+    print "matching..."
     #Initiate SIFT detector
     sift = cv2.SIFT()
 
     # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1,None)
     kp2, des2 = sift.detectAndCompute(img2_Cut,None)
 
     FLANN_INDEX_KDTREE = 0
@@ -169,15 +159,18 @@ while(1):
             if not is_point_in(pt[0],pt[1],pts2):
                 good.append(m)
             
-
+    print "transforming..."
     if len(good)>MIN_MATCH_COUNT:
         dst_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
         src_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
 
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
 
-        # img2 = drawlines(img2,np.float32([ kp2[m.trainIdx].pt for m in good ]))
+        img2 = drawlines(img2_Cut,np.float32([ kp2[m.trainIdx].pt for m in good ]))
 
+        imgshow = cv2.resize(img2, None, fx = 0.5, fy= 0.5)
+        cv2.imshow('img',imgshow)
+        cv2.waitKey(0)
         # matchesMask = mask.ravel().tolist()
         # h,w = img1.shape
         # pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
@@ -192,15 +185,16 @@ while(1):
         print "Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT)
         matchesMask = None
 
-    #imgshow = cv2.resize(img2, None, fx = 0.2, fy= 0.2)
-    #cv2.imshow("frame_Persp",imgshow)
-    cv2.imwrite("EQ7/Preprocess3/frame%d.png"%(frame_i),img2)
+    imgshow = cv2.resize(img2, None, fx = 0.2, fy= 0.2)
+    cv2.imshow("frame_Persp",imgshow)
+    cv2.imwrite("EQ5/Preprocess_Cut/frame%d.png"%(frame_i),img2_Cut)
     #video.write(img2)
     # img1 = img2
     k = cv2.waitKey(1) & 0xff
     if k == 27:
         break
 
-#video.release()
-cap.release()
+    frame_i = frame_i + 1
+
+# cap.release()
 cv2.destroyAllWindows()

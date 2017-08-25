@@ -23,27 +23,29 @@ def findCenter(img, pts, color):
 
 frame_i = 3266
 
-filename = "EQ7/replacementGPS.txt"
+filename = "EQ7/Calibration/Calibrate_Noise3.txt"
 
 # params for ShiTomasi corner detection
 feature_params = dict( maxCorners = 100,
-                       qualityLevel = 0.3,
+                       qualityLevel = 0.01,
                        minDistance = 10,#10
                        blockSize = 7 )
 # Parameters for lucas kanade optical flow
-lk_params = dict( winSize  = (15,15),
+lk_params = dict( winSize  = (30,30),
                   maxLevel = 2,
-                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 20, 0.03))
 
 color = np.random.randint(0,255,(100,3))
 
 # resize = [260:r - 440,140:c - 920]
 
-old_frame = cv2.imread("EQ7/Preprocess3/frame3267.png")
+old_frame = cv2.imread("EQ7/Frames/frame3267.png")
 r,c,a = old_frame.shape
-# old_frame = old_frame[260:r - 130,140:c - 580] #EQ5
-old_frame = old_frame[200:r - 100,0:c - 600]
-old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
+old_frame = cv2.cvtColor(old_frame, cv2.COLOR_BGR2RGB)
+# old_frame = old_frame[200:r - 60,50:c - 150]
+old_frame = old_frame[800:r - 500,1000:c - 1000] #EQ5
+# old_frame = old_frame[200:r - 100,0:c - 600]
+old_gray = cv2.cvtColor(old_frame, cv2.COLOR_RGB2GRAY)
 p0 = cv2.goodFeaturesToTrack(old_gray, mask = None, **feature_params)
 
 
@@ -54,7 +56,9 @@ ys = p0[:,0,1]
 fig, ax = plt.subplots()
 ax.set_title('click on point to plot time series')
 line, = ax.plot(xs, ys, 'o', picker=5, lw = 1)  # 5 points tolerance
+centerX, centerY = 3180/2,2160/2
 
+line, = ax.plot(1094, 900, 'o', picker=5, lw = 1, color = (0.2,0.4,0.8))  # 5 points tolerance
 NUM = 3
 N = 0
 p00 = p0[:NUM,:,:]
@@ -97,13 +101,15 @@ def on_key(event):
         # p00[0,0,:] = 834, 596 #r
         # p00[1,0,:] = 1374, 103 #g
         # p00[2,0,:] = 1374, 873 #b
-        p00[0,0,:] = 822, 778#r
-        p00[1,0,:] = 1361, 289 #g
-        p00[2,0,:] = 1358, 1052 #b   
-        N = 3
+        p00[0,0,:] = 428, 680#r
+        p00[1,0,:] = 432, 218 #g
+        p00[2,0,:] = 1057, 214 #b   
+        p00[3,0,:] = 1057, 680
+        N = 4
 
-# fig.canvas.mpl_connect('pick_event', onpick)
-fig.canvas.mpl_connect('button_press_event', onClick)
+fig.canvas.mpl_connect('pick_event', onpick)
+# fig.canvas.mpl_connect('button_press_event', onClick)
+
 fig.canvas.mpl_connect('key_press_event', on_key)
 plt.imshow(old_frame)
 plt.show()
@@ -116,23 +122,23 @@ p0 = p00
 
 # Create a mask image for drawing purposes
 mask = np.zeros_like(old_frame)
-row,col = old_gray.shape
 fourcc = cv2.cv.CV_FOURCC(*'XVID')
-# video = cv2.VideoWriter('EQ7/OFCneter.avi',fourcc, 30.0, (col,row))
+# video = cv2.VideoWriter('EQ7/Calibration/OFCneter.avi',fourcc, 30.0, (c,r))
 
 with open(filename, "w") as f:
-    color = [(255, 0, 0),(0, 0, 255),(0, 255, 0),(0, 0, 255),(255, 0, 0),(0, 255, 255),(0, 255, 0),(0, 0, 255)]
+    color = [(255, 0, 0),(0, 0, 255),(0, 255, 0),(0, 255, 255),(255, 0, 0),(0, 255, 255),(0, 255, 0),(0, 0, 255)]
     while(1):
         frame_i = frame_i + 1
         print frame_i
-        frame = cv2.imread("EQ7/Preprocess3/frame%d.png"%(frame_i))
+        frame = cv2.imread("EQ7/Frames/frame%d.png"%(frame_i))
 
         if frame is None:
             break
 
         r,c,a = frame.shape
+        frame = frame[800:r - 500,1000:c - 1000]
         # frame = frame[260:r - 130,140:c - 580] #140 620
-        frame = frame[200:r - 100,0:c - 600]
+        # frame = frame[200:r - 100,0:c - 600]
         # frame = frame[240:r - 140,150:c - 620]
         # frame = frame[230:r - 100,230:c - 520]
         
@@ -153,6 +159,9 @@ with open(filename, "w") as f:
             cv2.line(mask, (a,b),(c,d), color[i], 3)
             cv2.circle(frame,(a,b),5,color[i],-1)
         img = cv2.add(frame,mask)
+        # r,c,a = frame.shape
+        # img = img[220:r -120,150:c - 200,:]
+        cv2.imwrite("EQ7/Frames/frame%d.png"%(frame_i),img)
         # video.write(img)
 
         img = cv2.resize(img, None, fx = 0.5, fy= 0.5)
